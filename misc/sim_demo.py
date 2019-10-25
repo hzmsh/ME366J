@@ -5,7 +5,7 @@ import io
 
 ROOT_WIDTH = 800
 ROOT_HEIGHT = 600
-GCODE_ADDRESS = "_smileycoin_c.gcode"
+GCODE_ADDRESS = "_smileycoin.gcode"
 SHOW_GUI = True
 
 class PrintViz:
@@ -117,7 +117,7 @@ class PolarPrinter():
 					py1 = coor1[0]*math.sin(theta - coor1[1]) + self.ptf[1]
 					p = (px0, py0, px1, py1)
 
-					self.viz.c0.create_line(p, fill="red", width=4)
+					self.viz.c0.create_line(p, fill="red", width=1.5)
 
 
 		#Print Head Location
