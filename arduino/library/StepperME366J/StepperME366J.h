@@ -101,7 +101,7 @@ public:
           //  1st call: syncStep(dir) -> High
           //  2nd call: syncStep(dir) -> Low
           step_cycle = DriverType::syncStep(dir); 
-          schedule_time_ += time_delay_;
+          schedule_time_ = micros() + time_delay_;
           complete = true;
         }
       }
@@ -120,11 +120,19 @@ public:
     else return false;
   }
 
+  void setTimeDelay(int speed)
+  {
+    int s = fabs(speed-100);
+    time_delay_ = (time_delay_max_ - time_delay_min_)/100 * s + time_delay_min_;
+  }
+
 private:
 int steps_per_rev_;
 int goal_steps_;
 float error_;
-int time_delay_ = 500;
+int time_delay_ = 50;
+int time_delay_min_ = 50;
+int time_delay_max_ = 10000;
 unsigned long schedule_time_ = 0;
 
 };

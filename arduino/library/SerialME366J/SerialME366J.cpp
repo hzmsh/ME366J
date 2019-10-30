@@ -80,7 +80,7 @@ void StepperSerialCom::parseDataIn()
   //Sync turn w/ common finish (MSG CASE 1)
   //Get change in angle values from msg
   //Expects non zero values
-  if (stepper_cmd_.cmd_type == 0 || stepper_cmd_.cmd_type == 1)
+  if (stepper_cmd_.cmd_type == 0)
   {
     // float a[NUM_];
     float a[NUM];
@@ -93,5 +93,15 @@ void StepperSerialCom::parseDataIn()
     }
     if (!non_zero_check) return;
   }
+  else if (stepper_cmd_.cmd_type == 1)
+  {
+    // float a[NUM_];
+    float a[NUM];    
+    for (int i=0; i < NUM; i++)
+    {
+      stepper_cmd_.step_speed[i] = msg_list[i+1].toInt();
+    }
+  }
+
   fresh_cmd_ = true;
 }

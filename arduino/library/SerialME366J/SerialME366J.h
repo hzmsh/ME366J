@@ -7,6 +7,7 @@ struct StepperCmd
 {
   int cmd_type;
   float delta_angle[n];
+  int step_speed[n];
 };
 
 class StepperSerialCom

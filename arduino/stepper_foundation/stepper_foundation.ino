@@ -62,22 +62,30 @@ void cmdHandler(StepperCmd<NUM> cmd)
     //MOTOR 1 
     if (NUM >= 2)
     {
-    if (cmd.delta_angle[1] != 0) 
-    {
-      s1.setAngleGoal(cmd.delta_angle[1]);
-      Serial.println(cmd.delta_angle[1]);
-    }
+      if (cmd.delta_angle[1] != 0) s1.setAngleGoal(cmd.delta_angle[1]);
     }
     //MOTOR 2 
     if (NUM >= 3)
     {
-    if (cmd.delta_angle[2] != 0) s0.setAngleGoal(cmd.delta_angle[2]);
+      if (cmd.delta_angle[2] != 0) s2.setAngleGoal(cmd.delta_angle[2]);
     }
     //MOTOR 3
     if (NUM >= 4)
     {
-    if (cmd.delta_angle[3] != 0) s0.setAngleGoal(cmd.delta_angle[3]);
+      if (cmd.delta_angle[3] != 0) s3.setAngleGoal(cmd.delta_angle[3]);
     }
+  }
+  else if (cmd.cmd_type == 1)
+  {
+    Serial.println("SETTING THE SPEED");
+    //MOTOR 0
+    s0.setTimeDelay(cmd.step_speed[0]);
+    //MOTOR 1 
+    if (NUM >= 2) s1.setTimeDelay(cmd.step_speed[1]);
+    //MOTOR 2 
+    if (NUM >= 3) s2.setTimeDelay(cmd.step_speed[2]);
+    //MOTOR 3
+    if (NUM >= 4) s3.setTimeDelay(cmd.step_speed[3]);
   }
 }
 void iterateSync()

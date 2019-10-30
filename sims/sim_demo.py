@@ -80,11 +80,10 @@ class PolarPrinter():
 			if x < 0:
 				theta = math.pi
 
-		# print("X: " + str(x))
-		# print("Y: " + str(y))
-		# print("R: " + str(r))
 		# print("Theta: " + str(theta))
-		self.plot_list.append([r, theta, e])
+		# print("Tan2: " + str(math.atan2(y, x)))
+		# self.plot_list.append([r, theta, e])
+		self.plot_list.append([r, math.atan2(y, x), e])
 
 		# return r, theta
 		self.updatePrintCanvas(r, theta)

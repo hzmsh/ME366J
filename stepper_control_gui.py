@@ -2,18 +2,26 @@ from tkinter import *
 import time
 import math
 import io
+import serial
 
 ROOT_WIDTH = 800
 ROOT_HEIGHT = 600
-NUMBER_OF_STEPPERS = 4 
+NUMBER_OF_STEPPERS = 2
 
 driver_list = ["TB6600", "TB6600", "TB6600", "TB6600"]
-pin_list = [[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]]
+function_list = ["rail", "extruder", "?", ">"]
+pin_list = [[49, 51, 53], [48, 50, 51], [1, 2, 3], [1, 2, 3]]
 spr_list = [800, 800, 800, 800]
 
+com = serial.Serial(port="COM7", baudrate=9600, timeout=1)
+empty = com.readline()
+com.flushOutput()
+com.flushInput()
+
 class Stepper():
-	def __init__(self, dtype, pins, spr, angle=0, speed=100):
+	def __init__(self, dtype, f, pins, spr, angle=0, speed=100):
 		self.driver_type = dtype
+		self.function = f
 		self.pins = pins
 		self.spr = spr
 		self.angle=angle
@@ -41,7 +49,7 @@ class StepperGUI:
 			sf = Frame(self.master_frame, width=ROOT_WIDTH*0.75, height=ROOT_HEIGHT*0.5, bd=3, relief="raised")
 			sf.grid(row=layout[i][0], column=layout[i][1], padx=1, pady=1, sticky=N+W)
 			sf.grid_columnconfigure(0, minsize=ROOT_WIDTH*0.49)
-			title = Label(sf, text="Stepper " + str(i))
+			title = Label(sf, text="Stepper " + str(i) + " (" +s[i].function + ")")
 			title.grid(row=0, sticky=W)
 			content = Frame(sf, bd=3, relief="sunken")
 			content.grid(row=1, sticky=W)
@@ -77,31 +85,57 @@ class StepperGUI:
 		#Button Frames
 		bf = Frame(self.master_frame, width=ROOT_WIDTH*0.25)
 		bf.grid(row=layout[len(s)-1][0]+1, column=0, columnspan=2, padx=1, pady=1, sticky=N+W)
-		Button(bf, text="Update Motors", command=self.command_callback).pack()
+		Button(bf, text="Send Motor CMD", command=self.command_callback).pack()
 
 		self.stepper_list = s
 
 	def command_callback(self):
-		goal = "<"
+		speed_check = False
+		speed_string= "<1:"
 		for i in range(len(self.stepper_list)):
 			speed = self.s_frame[i]["speed_scale"].get()
+			speed_string += str(speed)
 			self.s_frame[i]["speed"].set("Speed: "+str(speed)+"%")
-			angle = float(self.s_frame[i]["goal"].get()) / 2*math.pi
-			goal += str(angle)
+			if self.stepper_list[i] != speed:
+				speed_check = True
 			if i != len(self.stepper_list)-1:
-				goal += ":"
-		goal += ">"
-		print(goal)
+				speed_string += ":"
+		speed_string += ">"
+		if speed_check:
+			self.send_serial(speed_string)
+
+		time.sleep(0.5)
+
+		goal_check = False
+		goal_string = "<0:"
+		for i in range(len(self.stepper_list)):
+			rev = float(self.s_frame[i]["goal"].get())
+			if rev != 0:
+				goal_check = True
+			angle = rev * 2*math.pi
+			goal_string += str(angle)
+			if i != len(self.stepper_list)-1:
+				goal_string += ":"
+		goal_string += ">"
+		if goal_check:
+			self.send_serial(goal_string)
+
+
+	def send_serial(self, data):
+		print(data)
+		com.flushOutput()
+		com.flushInput()
+		com.write(data.encode())
 
 
 if __name__ == "__main__":
 	s_list = []
 	for i in range(NUMBER_OF_STEPPERS):
-		s_list.append(Stepper(driver_list[i], pin_list[i], spr_list[i]))
+		s_list.append(Stepper(driver_list[i], function_list[i], pin_list[i], spr_list[i]))
 
 	root = Tk()
 	v = StepperGUI(root, s_list)
-	while True:
+	while True:	
 		try:
 			root.update()
 		except KeyboardInterrupt:
