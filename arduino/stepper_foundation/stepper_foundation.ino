@@ -118,18 +118,3 @@ void iterateSync()
     active_sync_task = false;
   }
 }
-
-int compScheduleTime(unsigned long *t)
-{
-  unsigned long minimum = t[0];
-  int index = 0;
-  for (int i=1; i<NUM; i++)
-  {
-    if (t[i] < minimum & t[i] > 0)
-    {
-      minimum = t[i];
-      index = i;
-    }
-  }
-  return index;
-}
