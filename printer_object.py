@@ -1,8 +1,6 @@
 import math 
-from scipy.integrate import quad
 
-def integrand(x, r1, r2,theta1,theta2):
-	
+
 
 class printer():
 	def __init__(self, pulley_radius,screw_pitch):
@@ -21,15 +19,29 @@ class printer():
 		screw_angle = num_circles * 2 * math.pi
 		return (screw_angle)
 
-	# pc = [r,theta,E], this method will determine the dist we input into get_screw_angle
+	# c = [r,theta,E], this method will determine the dist we input into get_screw_angle
+	# bonus: figure out how to use the midpoint to calculate more accurate dist 
 	def get_E_dist(self, c_old, c):
 		r1 = c_old[0]
 		theta1 = c_old[1]
 		r2 = c[0]
 		theta2 = c[1]
+		# convert r,theta to x,y
+		x1 = r1*(math.sin(theta1))
+		y1 = r1*(math.cos(theta1))
+		x2 = r2*(math.sin(theta2))
+		y2 = r2*(math.cos(theta2))	
 
-		if r1 > r2, theta1 < theta2:
-			diff_r = r1 - r2
-			diff_theta = theta2 - theta1
-			r_func = r1 + (diff_r/diff_theta)*
+		# midpoint coord
+		# consider three senarios, both posi, both nega, one posi + one nega
+ 		x3 = abs(x1-x2)/2 + min(x1,x2)
+
+		#compute dist
+		dist1 = math.sqrt((x1-x3)^2+(y1-y3)^2)
+		dist2 = math.sqrt((x2-x3)^2+(y2-y3)^2)
+		dist = dist1 + dist2
+
+		# call get_screw_angle
+		screw_angle = self.get_screw_angle(dist)
+		return (screw_angle)
 
