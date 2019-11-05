@@ -83,6 +83,7 @@ class PolarPrinter():
 		# print("Theta: " + str(theta))
 		# print("Tan2: " + str(math.atan2(y, x)))
 		# self.plot_list.append([r, theta, e])
+		print(r)
 		self.plot_list.append([r, math.atan2(y, x), e])
 
 		# return r, theta

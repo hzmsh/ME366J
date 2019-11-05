@@ -21,12 +21,17 @@ import math
 import io
 import numpy as np 
 import matplotlib.pyplot as plt
+from parse_gcode import parse_gcode_new as parse_gcode
+# from parse_gcode import parse_gcode
+from printer_object import printer as p_obj
 
 ROOT_WIDTH = 800
 ROOT_HEIGHT = 600
+THETA_SPR = 200
 
 #GCODE PARAMETERS	
-GCODE_FILE_PATH = "test_gear.gcode"
+# GCODE_FILE_PATH = "sims/_smileycoin.gcode"
+GCODE_FILE_PATH = "sims/test.gcode"
 
 class PrintViz:
 	def __init__(self, r):
@@ -52,6 +57,8 @@ class PrintViz:
 		self.c1.pack()
 
 class PolarPrinter():
+	pulley_radius = 200
+	# plot_list = [[0, 0, False]]
 	plot_list = list()
 	c_list = list()
 	ptf = [(ROOT_WIDTH*0.75)/2, (ROOT_HEIGHT*0.75)/2] #center of c0 canvas
@@ -63,17 +70,27 @@ class PolarPrinter():
 		self.updatePrintCanvas(0, 0)
 		
 	def print(self, cmd):
-		cmd = cmd[1:len(cmd)-2]
+		print(cmd)
+		cmd = cmd[1:len(cmd)-1]
 		cmd = cmd.split(":")
-		r = rad_stepper(cmd[1])
-		theta = cmd[2]
+		r = self.rad_stepper(float(cmd[1]))
+		theta = float(cmd[2])
+		if len(self.plot_list):
+			p_old = self.plot_list[-1]
+			# print(p_old[0] + r)
+			self.plot_list.append([p_old[0] + r, p_old[1] + theta, int(cmd[3])])
+			self.updatePrintCanvas(p_old[0] + r, p_old[1] + theta)
+		else:
+			self.plot_list.append([r, theta, int(cmd[3])])
+			
 
-	def rad_stepper(angle):
-		return 0
+	def rad_stepper(self, angle):
+		return angle * self.pulley_radius
 
 	def updatePrintCanvas(self, head, theta):
 		#t is the current theta of the print bed
 		#x is the current position of the print head
+		time.sleep(0.01)
 		self.viz.c0.delete(ALL)
 		self.viz.c0.create_oval(self.print_bed_bbox, fill="purple")
 
@@ -113,12 +130,45 @@ class PolarPrinter():
 			rl.append(y)	
 		r = tuple(rl)
 		self.viz.c0.create_rectangle(r, fill="blue")
+		self.viz.root.update()
 
 
 if __name__ == "__main__":
+	#Get and parse GCODE to polar coordinates
+	gcode = open(GCODE_FILE_PATH, 'r').read()
+	coordinate_list = parse_gcode(gcode)
+	p = p_obj(20,5)
+
+	cmd_list = []
+	c_old = [0, 0, False]
+	for c in coordinate_list:
+		#delta = [dr, dtheta]
+		delta = [c[0] - c_old[0], c[1] - c_old[1]]
+		a0 = p.get_belt_angle(delta[0]) #radius angle
+		a1 = delta[1] #plate angle
+		# print("T_NEW: " + str(c[1]) + " T_OLD: " + str(c_old[1]))
+		# print("DT: " + str(a1))
+		if c[2]:
+			a2 = 1
+		else:
+			a2 = 0
+
+		c_old = c
+		cmd_string = "<" + str(0)
+		cmd_string += ":" + str(a0)
+		cmd_string += ":" + str(a1)
+		cmd_string += ":" + str(a2) + ">"
+		cmd_list.append(cmd_string)
+
+
+	# print(cmd_list)
 	root = Tk()
 	v = PrintViz(root)
-	printer = PolarPrinter(v)
+	sim_printer = PolarPrinter(v)
+	for c in cmd_list:
+		sim_printer.print(c)
+
+	print("Done")
 	while True:	
 		try:
 			root.update()
