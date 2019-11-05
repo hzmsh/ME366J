@@ -21,8 +21,8 @@ import math
 import io
 import numpy as np 
 import matplotlib.pyplot as plt
-from parse_gcode import parse_gcode_new as parse_gcode
-# from parse_gcode import parse_gcode
+# from parse_gcode import parse_gcode_old as parse_gcode
+from parse_gcode import parse_gcode
 from printer_object import printer as p_obj
 
 ROOT_WIDTH = 800
@@ -31,7 +31,7 @@ THETA_SPR = 200
 
 #GCODE PARAMETERS	
 # GCODE_FILE_PATH = "sims/_smileycoin.gcode"
-GCODE_FILE_PATH = "sims/test.gcode"
+GCODE_FILE_PATH = "sims/test2.gcode"
 
 class PrintViz:
 	def __init__(self, r):
@@ -70,7 +70,7 @@ class PolarPrinter():
 		self.updatePrintCanvas(0, 0)
 		
 	def print(self, cmd):
-		print(cmd)
+		# print(cmd)
 		cmd = cmd[1:len(cmd)-1]
 		cmd = cmd.split(":")
 		r = self.rad_stepper(float(cmd[1]))
@@ -90,7 +90,7 @@ class PolarPrinter():
 	def updatePrintCanvas(self, head, theta):
 		#t is the current theta of the print bed
 		#x is the current position of the print head
-		time.sleep(0.01)
+		# time.sleep(0.001)
 		self.viz.c0.delete(ALL)
 		self.viz.c0.create_oval(self.print_bed_bbox, fill="purple")
 
