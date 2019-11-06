@@ -2,8 +2,8 @@ import math
 
 class printer():
 	def __init__(self, pulley_radius,screw_pitch):
-    	self.pulley_radius = pulley_radius
-    	self.screw_pitch = screw_pitch
+		self.pulley_radius = pulley_radius
+		self.screw_pitch = screw_pitch
 
 	def get_belt_angle(self, dist):
 	    # theta = arc_length / r, angle in radian
@@ -32,8 +32,8 @@ class printer():
 
 		# midpoint coord
 		# consider three senarios, x1,x2 both posi, both nega, one posi + one nega
- 		x3 = abs(x1-x2)/2 + min(x1,x2)
-  		y3 = abs(y1-y2)/2 + min(y1,y2)
+		x3 = abs(x1-x2)/2 + min(x1,x2)
+		y3 = abs(y1-y2)/2 + min(y1,y2)
 
 		#compute dist
 		dist1 = math.sqrt((x1-x3)^2+(y1-y3)^2)
