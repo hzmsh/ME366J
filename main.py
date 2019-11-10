@@ -36,36 +36,69 @@ import math
 import io
 import numpy as np 
 import matplotlib.pyplot as plt
+import serial
 
 from parse_gcode import parse_gcode
-from conversion_functions import get_belt_angle, get_screw_angle
+from printer_object import printer as p_obj
 
 #GCODE PARAMETERS	
-GCODE_FILE_PATH = "sims/test_gear.gcode"
+GCODE_FILE_PATH = "sims/test.gcode"
+SPR = [800, 200, 200, 200]
+
+def getSteps(goal, error, spr):
+	angle_goal = goal + error
+	step_goal_float = 0.5*angle_goal*spr/math.pi
+	step_goal = round(step_goal_float)
+	error = 2*math.pi*(step_goal_float - step_goal)/spr
+	return [step_goal, error]
+
 
 if __name__ == "__main__":
 	#Get and parse GCODE to polar coordinates
 	gcode = open(GCODE_FILE_PATH, 'r').read()
 	coordinate_list = parse_gcode(gcode)
+	p = p_obj(20,5)
 
-	#Turn polar coordinates into motor command strings
 	cmd_list = []
 	c_old = [0, 0, False]
+	a = [0, 0, 0, 0]
+	error = [0, 0, 0, 0]
 	for c in coordinate_list:
 		#delta = [dr, dtheta]
 		delta = [c[0] - c_old[0], c[1] - c_old[1]]
-		a0 = get_belt_angle(delta[0]) #radius angle
-		a1 = delta[1] #plate angle
-		if c[2]:
-			#NOTE: SCREW ANGLE DEPENDS ON TRAVEL DISTANCE...
-			#MORE WORK NEEDED
-			a2 = get_screw_angle() #extruder angle
+		
+		#GET STEPPER MOTOR ANGLES
+		#------------------------
+		#R ANGLE
+		a[0] = p.get_belt_angle(delta[0])
+		#PLATE ANGLE
+		a[1] = delta[1]
+		#!!!!!!!!!!!!!!!EXTRUDER ANGLE!!!!!!!!!!!
+		if c[2] != 0:
+			#convert distance traveled -> volume -> syringe dx -> stepper angle
+			a[2] = 1
 		else:
-			a2 = 0
+			a[2] = 0
 
-		#cmd_list.append(create_cmd_sting(a0, a1, a2))
+		#CONVERT ANGLES TO STEPS
+		#-----------------------
+		step = [0, 0, 0, 0]
+		for i in range(len(a)):
+			s = getSteps(a[i], error[i], SPR[1])
+			step[i] = s[0]
+			error[i] = s[1]
+
+		c_old = c
+		cmd_string = "<" + str(0)
+		cmd_string += ":" + str(step[0])
+		cmd_string += ":" + str(step[1])
+		cmd_string += ":" + str(step[2]) + ">"
+		print(cmd_string)
+		cmd_list.append(cmd_string)
 
 
-
-
-
+	while True:	
+		try:
+			time.sleep(0.1)
+		except KeyboardInterrupt:
+			break

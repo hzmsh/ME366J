@@ -30,7 +30,8 @@ ROOT_HEIGHT = 600
 THETA_SPR = 200
 
 #GCODE PARAMETERS	
-GCODE_FILE_PATH = "sims/_smileycoin.gcode"
+# GCODE_FILE_PATH = "sims/_smileycoin.gcode"
+GCODE_FILE_PATH = "sims/test.gcode"
 
 class PrintViz:
 	def __init__(self, r):
