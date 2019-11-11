@@ -137,7 +137,7 @@ if __name__ == "__main__":
 	#Get and parse GCODE to polar coordinates
 	gcode = open(GCODE_FILE_PATH, 'r').read()
 	coordinate_list = parse_gcode(gcode)
-	p = p_obj(20,5)
+	p = p_obj(6.75,5)
 
 	cmd_list = []
 	c_old = [0, 0, False] 

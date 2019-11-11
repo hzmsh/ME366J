@@ -13,11 +13,11 @@ function_list = ["rail", "extruder", "?", ">"]
 pin_list = [[49, 51, 53], [48, 50, 51], [1, 2, 3], [1, 2, 3]]
 spr_list = [800, 800, 800, 800]
 
-# com = serial.Serial(port="COM7", baudrate=9600, timeout=1)
-# empty = com.readline()
-# com.flushOutput()
-# com.flushInput()
-com = None
+com = serial.Serial(port="COM7", baudrate=9600, timeout=1)
+empty = com.readline()
+com.flushOutput()
+com.flushInput()
+# com = None
 
 class Stepper():
 	def __init__(self, dtype, f, pins, spr, angle=0, speed=100):

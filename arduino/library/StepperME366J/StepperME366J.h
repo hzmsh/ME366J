@@ -10,20 +10,24 @@ public:
   bool syncStep(bool dir);
 
 private:
-  int ena_pin;
-  int dir_pin;
-  int pul_pin;
+  int ena_pin_;
+  int dir_pin_;
+  int pul_pin_;
   int pulse_state_;
 };
 
-class DriverL298N
+class DriverDVR8825
 {
 public:
-  DriverL298N();
-  void setupDriver(int *pins);
-  
-  void stepMotor(int steps);
+  DriverDVR8825(int spr, int *pins);
+
   bool syncStep(bool dir);
+private:
+  void subStep(int i);
+
+  int step_pin_;
+  int dir_pin_;
+  int pulse_state_;
 };
 
 template <class DriverType>
