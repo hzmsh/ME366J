@@ -4,7 +4,6 @@
 #include <StepperME366J.h>
 #include <math.h>
 
-
 //DEFINE MOTOR VARIABLES
 //----------------------
 //STEP, DIR

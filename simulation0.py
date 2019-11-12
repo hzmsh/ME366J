@@ -57,7 +57,7 @@ class PrintViz:
 		self.c1.pack()
 
 class PolarPrinter():
-	pulley_radius = 200
+	pulley_radius = 6.75
 	# plot_list = [[0, 0, False]]
 	plot_list = list()
 	c_list = list()
@@ -137,30 +137,31 @@ if __name__ == "__main__":
 	#Get and parse GCODE to polar coordinates
 	gcode = open(GCODE_FILE_PATH, 'r').read()
 	coordinate_list = parse_gcode(gcode)
-	p = p_obj(20,5)
+	p = p_obj(6.75,5)
 
 	cmd_list = []
 	c_old = [0, 0, False] 
-	for c in coordinate_list:
-		#delta = [dr, dtheta]
-		delta = [c[0] - c_old[0], c[1] - c_old[1]]
-		#R ANGLE
-		a0 = p.get_belt_angle(delta[0])
-		#PLATE ANGLE
-		a1 = delta[1]
+	for coordinates in coordinate_list:
+		for c in coordinates:
+			#delta = [dr, dtheta]
+			delta = [c[0] - c_old[0], c[1] - c_old[1]]
+			#R ANGLE
+			a0 = p.get_belt_angle(delta[0])
+			#PLATE ANGLE
+			a1 = delta[1]
 
-		#!!!!!!!!!!!!!!!EXTRUDER ANGLE!!!!!!!!!!!
-		if c[2] != 0:
-			#convert distance traveled -> volume -> syringe dx -> stepper angle
-			a2 = 1
-		else:
-			a2 = 0
-		c_old = c
-		cmd_string = "<" + str(0)
-		cmd_string += ":" + str(a0)
-		cmd_string += ":" + str(a1)
-		cmd_string += ":" + str(a2) + ">"
-		cmd_list.append(cmd_string)
+			#!!!!!!!!!!!!!!!EXTRUDER ANGLE!!!!!!!!!!!
+			if c[2] != 0:
+				#convert distance traveled -> volume -> syringe dx -> stepper angle
+				a2 = 1
+			else:
+				a2 = 0
+			c_old = c
+			cmd_string = "<" + str(0)
+			cmd_string += ":" + str(a0)
+			cmd_string += ":" + str(a1)
+			cmd_string += ":" + str(a2) + ">"
+			cmd_list.append(cmd_string)
 
 	# print(cmd_list)
 	root = Tk()

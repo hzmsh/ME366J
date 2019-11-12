@@ -94,16 +94,18 @@ def parse_gcode(g, theta_spr=800):
 	cc[0] = [x - x_avg for x in cc[0]]
 	cc[1] = [y - y_avg for y in cc[1]]
 
+	
 	#POLAR CONVERSION
 	for i in range(1, len(cc[0])):
-	# for i in range(1, 100):
+		sub_pc = []
 		if not cc[2][i]:#if extrude is False
 			xf2 = pow(cc[0][i], 2)
 			yf2 = pow(cc[1][i], 2)
 			r = pow(xf2 + yf2, 0.5)
 			#tan2 determines theta based on quadrant
 			theta = math.atan2(cc[1][i], cc[0][i])
-			pc.append([r, theta, 0])
+			
+			sub_pc.append([r, theta, 0])
 
 		else: #if extrude is true
 			#Create line segment from points (x1, y1) and (x2, y2)
@@ -158,13 +160,17 @@ def parse_gcode(g, theta_spr=800):
 					dy2 = pow(y_int - y_old, 2)
 					e = pow(dx2 + dy2, 0.5)
 
-					pc.append([r, t, e])
+					sub_pc.append([r, t, e])
 					if direction != 0:
 						t += t_step*direction
 
 					x_old = x_int
 					y_old = y_int
-				
+
+
+			if (len(sub_pc) !=  0):
+				pc.append(sub_pc)	
+
 	return pc
 
 
