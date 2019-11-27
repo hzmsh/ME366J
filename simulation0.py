@@ -21,6 +21,7 @@ import math
 import io
 import numpy as np 
 import matplotlib.pyplot as plt
+import sys
 # from parse_gcode import parse_gcode_old as parse_gcode
 from parse_gcode import parse_gcode
 from printer_object import printer as p_obj
@@ -30,8 +31,8 @@ ROOT_HEIGHT = 600
 THETA_SPR = 200
 
 #GCODE PARAMETERS	
-# GCODE_FILE_PATH = "sims/_smileycoin.gcode"
-GCODE_FILE_PATH = "sims/test.gcode"
+GCODE_FILE_PATH = "sims/_smileycoin.gcode"
+# GCODE_FILE_PATH = "sims/test.gcode"
 
 class PrintViz:
 	def __init__(self, r):
@@ -163,7 +164,6 @@ if __name__ == "__main__":
 			cmd_string += ":" + str(a2) + ">"
 			cmd_list.append(cmd_string)
 
-	# print(cmd_list)
 	root = Tk()
 	v = PrintViz(root)
 	sim_printer = PolarPrinter(v)

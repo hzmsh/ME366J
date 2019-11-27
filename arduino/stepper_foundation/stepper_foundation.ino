@@ -7,11 +7,12 @@
 //DEFINE MOTOR VARIABLES
 //----------------------
 //STEP, DIR
-int pin0[] = {22, 24};
+int pin0[] = {0, 1};
 //ENA, DIR, PUL
 int pin1[] = {48, 50, 52};
 int pin2[] = {43, 45, 47};
 int pin3[] = {42, 44, 46};
+
 StepperMotor<DriverDVR8825> s0(800,pin0);
 StepperMotor<DriverTB6600> s1(800,pin1);
 StepperMotor<DriverTB6600> s2(800,pin2);

@@ -1,11 +1,11 @@
-#define NUM 2 
+#define NUM 3 
 
 #include <Arduino.h>
 #include <SerialME366J.h>
   
 void StepperSerialCom::readSerialIn()
 {
-  Serial.println("Triggered");  
+  //Serial.println("Triggered");  
   char x = char(Serial.read());
 
   // NOTE: the order of these IF clauses is significant
@@ -44,24 +44,23 @@ bool StepperSerialCom::getReadProgress()
   return read_in_progress_;
 }
 
-bool StepperSerialCom::getStepperCmdState() 
+bool StepperSerialCom::getSerialCmdState() 
 {
   return fresh_cmd_;
 }
 
-StepperCmd<NUM> StepperSerialCom::getStepperCmd()
+SerialCmd<NUM> StepperSerialCom::getSerialCmd()
 {
   fresh_cmd_ = false;
-  return stepper_cmd_;
+  return serial_cmd_;
 }
 
 void StepperSerialCom::parseDataIn()
 {
   //MSG PARSER GENERAL APPLICATION
   //------------------------------
-
   char * msg_pointer;
-  String msg_list[NUM+1];
+  String msg_list[10];
   msg_pointer = strtok(input_buffer, ":");
   char msg[buff_size_] = {0};
   int msg_index = 0;
@@ -74,33 +73,20 @@ void StepperSerialCom::parseDataIn()
   }
   //------------------------------
   //CONVERT TO CMD
-  stepper_cmd_.cmd_type = msg_list[0].toInt();
+  //Serial.println(msg_list[0]);
+  serial_cmd_.cmd_type = msg_list[0].toInt();
 
-  //Sync turn w/o common finish (MSG CASE 0)
-  //Sync turn w/ common finish (MSG CASE 1)
-  //Get change in angle values from msg
-  //Expects non zero values
-  if (stepper_cmd_.cmd_type == 0)
+  
+  if (serial_cmd_.cmd_type == 2)
   {
-    // float a[NUM_];
-    float a[NUM];
-    bool non_zero_check = false;
-    
-    for (int i=0; i < NUM; i++)
+    for (int i=0; i<8; i++)
     {
-      stepper_cmd_.delta_angle[i] = msg_list[i+1].toFloat();
-      if (stepper_cmd_.delta_angle[i] != 0) non_zero_check = true;
+      serial_cmd_.function_data[i] = msg_list[i+1].toFloat();
     }
-    if (!non_zero_check) return;
   }
-  else if (stepper_cmd_.cmd_type == 1)
+  else if (serial_cmd_.cmd_type == 3)
   {
-    // float a[NUM_];
-    float a[NUM];    
-    for (int i=0; i < NUM; i++)
-    {
-      stepper_cmd_.step_speed[i] = msg_list[i+1].toInt();
-    }
+    serial_cmd_.cmd_data = msg_list[1].toInt();
   }
 
   fresh_cmd_ = true;

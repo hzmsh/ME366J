@@ -56,7 +56,7 @@ def intersection(l1, l2, s):
 		# print("NONE......")
 		return None
 
-def parse_gcode(g, theta_spr=800):
+def parse_gcode(g, theta_spr=800): 
 	cc = [[],[],[]] #cartesian coordinates
 	pc = [] #polar coordinates
 	#Take a layer of the GCODE

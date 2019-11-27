@@ -27,11 +27,10 @@ from printer_object import printer as p_obj
 
 ROOT_WIDTH = 800
 ROOT_HEIGHT = 600
-THETA_SPR = 200
 
 #GCODE PARAMETERS	
-# GCODE_FILE_PATH = "sims/_smileycoin.gcode"
-GCODE_FILE_PATH = "sims/test.gcode"
+GCODE_FILE_PATH = "sims/_smileycoin.gcode"
+# GCODE_FILE_PATH = "sims/test.gcode"
 
 class PrintViz:
 	def __init__(self, r):
@@ -64,6 +63,9 @@ class StepperMotor:
 	def __init__(self, spr):
 		self.spr = spr
 		self.start_time = time.time()
+
+	def mannual_set_event_time(self, t):
+		self.event_time = t
 		
 	def get_step_goal(self, a):
 		angle = a + self.error
@@ -91,8 +93,11 @@ class PolarPrinter:
 	start_time = 0
 	task_state = False
 	task = []
+	pre_task = []
 	delay = [0, 0]
+	added_delay = [0, 0]
 	min_step_delay = 0.001
+	min_step_delay_mag = 3
 	start_time = 0
 	def __init__(self, s0, s1):
 		self.stepper0 = s0
@@ -113,7 +118,7 @@ class PolarPrinter:
 		self.task = []
 		s0 = c[0]
 		s1 = c[1]
-		print("S0: " + str(s0) + " S1: " + str(s1))
+		# print("S0: " + str(s0) + " S1: " + str(s1))
 		if s0 == 0:
 			self.delay[1] = self.min_step_delay
 			for i in range(2*abs(s1)):
@@ -124,56 +129,91 @@ class PolarPrinter:
 				self.task.append([0, s0/abs(s0)])
 		else:
 			ratio = abs(float(s0))/abs(float(s1))
-			print("Ratio: " + str(ratio))
+			# print("Ratio: " + str(ratio))
 			if ratio >= 1:
 				self.delay[0] = self.min_step_delay
 				self.delay[1] = self.min_step_delay * ratio
+				s0_count = 0
 				s1_count = 0
-				for i in range(2*abs(s0)):
+				for i in range(0, 2*abs(s0)):
 					self.task.append([0, s0/abs(s0)])
-					if i * self.delay[0] > s1_count * self.delay[1]:
+					s0_count += 1
+					if i >= s1_count * ratio:
 						self.task.append([1, s1/abs(s1)])
 						s1_count += 1
+				if s1_count < 2*abs(s1):
+					print("Positive Ratio -- Bad task asm")
+					# self.task.append([1, s1/abs(s1)])
+				# print("S0_count: " + str(s0_count) + " S1_count: " + str(s1_count))
 			else:
 				ratio = 1/ratio
 				self.delay[0] = self.min_step_delay * ratio
 				self.delay[1] = self.min_step_delay
 				s0_count = 0
-				for i in range(2*abs(s1)):
-					self.task.append([1, s0/abs(s0)])
-					if i * self.delay[1] > s0_count * self.delay[0]:
+				s1_count = 0
+				for i in range(0, 2*abs(s1)):
+					self.task.append([1, s1/abs(s1)])
+					s1_count += 1
+					if i >= s0_count * ratio:
 						self.task.append([0, s0/abs(s0)])
 						s0_count += 1
+				if s0_count < 2*abs(s0):
+					print("Neg Ratio -- Bad task asm")
 
-		print("Delay: " + str(self.delay))
-		print("Sync Steps: " + str(len(self.task)))
-		print(self.task)
-		print("\n")
+		# 		print("S0_count: " + str(s0_count) + " S1_count: " + str(s1_count))
+		# print("Delay: " + str(self.delay))
+		# print(self.task)
+		# print("\n")
+	def init_task(self):
+		if self.stepper0.event_time != self.stepper1.event_time:
+			if self.stepper0.event_time > self.stepper1.event_time:
+				dt = self.stepper0.event_time - self.stepper1.event_time
+				dt = round(dt, self.min_step_delay_mag)
+				# self.stepper1.mannual_set_event_time(self.stepper0.event_time)
+				self.pre_task.append([1, dt])
+			elif self.stepper0.event_time < self.stepper1.event_time:
+				dt = self.stepper1.event_time - self.stepper0.event_time
+				dt = round(dt, self.min_step_delay_mag)
+				# self.stepper0.mannual_set_event_time(self.stepper1.event_time)
+				self.pre_task.append([0, dt])
+
 
 	def execute_task(self):
+		if len(self.pre_task) != 0:
+			t = self.pre_task.pop(0)
+			self.added_delay[t[0]] = t[1]
+			print(self.added_delay)
+
 		t = self.task.pop(0)
 		motor = t[0]
 		if len(self.task) == 0:
 			self.task_state = False
 		if motor == 0:
-			x = self.stepper0.execute_sync_step(self.delay[0])
-			return [0, x[0], x[1], t[1]*self.delay[0]]
+			d = self.delay[0] + self.added_delay[0]
+			x = self.stepper0.execute_sync_step(d)
+			self.added_delay[0] = 0
+			time = round(x[0], self.min_step_delay_mag)
+			return [0, time, x[1], t[1]*d]
 		elif motor == 1:
-			x = self.stepper1.execute_sync_step(self.delay[1])
-			return [1, x[0], x[1], t[1]*self.delay[1]]
+			d = self.delay[0] + self.added_delay[1]
+			x = self.stepper1.execute_sync_step(d)
+			self.added_delay[1] = 0
+			time = round(x[0], self.min_step_delay_mag)
+			return [1, time, x[1], t[1]*d]
 
 	def print(self, i):
 		current = False
 		if self.cmd_counter < len(self.cmds):
 			if not self.task_state:
 				self.set_task(self.cmds[self.cmd_counter])
+				self.init_task()
 				self.cmd_counter += 1
 
-			while self.task_state and not current:
+			while self.task_state:# and not current:
 				data = self.execute_task()
 				t = data[1]
 				if t > time.time() - self.start_time:
-					print("ANIMATION IS CURRENT")
+					# print("ANIMATION IS CURRENT")
 					current = True
 				if data[0] == 0:
 					self.plot_x0.append(data[1]*1000)
@@ -181,26 +221,38 @@ class PolarPrinter:
 					self.plot_x0.append(data[1]*1000)
 					self.plot_y0.append(data[2])
 					self.plot_x2.append(data[1]*1000)
-					self.plot_y2.append(data[3])
+					self.plot_y2.append(math.pi/(self.stepper0.spr * data[3]))
 				elif data[0] == 1:
 					self.plot_x1.append(data[1]*1000)
 					self.plot_y1.append(not data[2])
 					self.plot_x1.append(data[1]*1000)
 					self.plot_y1.append(data[2])
 					self.plot_x3.append(data[1]*1000)
-					self.plot_y3.append(data[3])
+					self.plot_y3.append(math.pi/(self.stepper1.spr * data[3]))
 
 			self.ax0.clear()
 			self.ax0.set_xlim(self.plot_x0[-1]-10, self.plot_x0[-1])
 			self.ax0.plot(self.plot_x0, self.plot_y0)
+			self.ax0.set_title('Stepper 0 Pulse')
+			self.ax0.set(xlabel='Time', ylabel='State')
 			self.ax1.clear()
 			self.ax1.set_xlim(self.plot_x1[-1]-10, self.plot_x1[-1])
 			self.ax1.plot(self.plot_x1, self.plot_y1)
+			self.ax1.set_title('Stepper 1 Pulse')
+			self.ax1.set(xlabel='Time', ylabel='State')
 			self.ax2.clear()
-			# self.ax2.set_xlim(self.plot_x2[-1]-100, self.plot_x2[-1])
 			# self.ax2.set_ylim(-0.005, 0.005)
-			self.ax2.plot(self.plot_x3, self.plot_y3)
-			self.ax2.plot(self.plot_x2, self.plot_y2)
+			# self.ax2.set_xlim(self.plot_x2[-1]-100, self.plot_x2[-1])
+			self.ax2.plot(self.plot_x2, self.plot_y2, label="Stepper 0")
+			self.ax2.plot(self.plot_x3, self.plot_y3, label="Stepper 1")
+			self.ax2.set_title('Rotational Velocity')
+			self.ax2.set(xlabel='Time', ylabel='rad/s')
+			self.ax2.legend()
+
+			if (self.plot_x2[-1] != self.plot_x3[-1]):
+				print("x2_p: " + str(self.plot_x2[-1]))
+				print("x3_p: " + str(self.plot_x3[-1]))
+
 
 stepper0 = StepperMotor(800)
 stepper1 = StepperMotor(800)
@@ -209,7 +261,7 @@ pp = PolarPrinter(stepper0, stepper1)
 if __name__ == "__main__":
 	#Get and parse GCODE to polar coordinates
 	gcode = open(GCODE_FILE_PATH, 'r').read()
-	coordinate_list = parse_gcode(gcode)
+	coordinate_list = parse_gcode(gcode, theta_spr = stepper1.spr)
 	p = p_obj(6.75,5)
 
 	cmd_list = []
@@ -233,12 +285,16 @@ if __name__ == "__main__":
 			c_old = c
 			cmd_list.append([s0, s1])
 
-	pp.set_cmds(cmd_list)
-	pp.set_start_time()
+	# pp.set_cmds(cmd_list[20:25])
+	#<0:15:10:10:0>
+	print(len(cmd_list))
 
-	while True:
-		try:
-			ani = animation.FuncAnimation(pp.fig, pp.print, interval=1)
-			plt.show()
-		except KeyboardInterrupt:
-			break
+	# pp.set_cmds(cmd_list)
+	# pp.set_start_time()
+
+	# while True:
+	# 	try:
+	# 		ani = animation.FuncAnimation(pp.fig, pp.print, interval=1)
+	# 		plt.show()
+	# 	except KeyboardInterrupt:
+	# 		break
