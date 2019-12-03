@@ -75,7 +75,6 @@ void StepperSerialCom::parseDataIn()
   //CONVERT TO CMD
   //Serial.println(msg_list[0]);
   serial_cmd_.cmd_type = msg_list[0].toInt();
-
   
   if (serial_cmd_.cmd_type == 2)
   {
@@ -84,10 +83,5 @@ void StepperSerialCom::parseDataIn()
       serial_cmd_.function_data[i] = msg_list[i+1].toFloat();
     }
   }
-  else if (serial_cmd_.cmd_type == 3)
-  {
-    serial_cmd_.cmd_data = msg_list[1].toInt();
-  }
-
   fresh_cmd_ = true;
 }

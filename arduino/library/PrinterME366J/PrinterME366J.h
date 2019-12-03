@@ -22,11 +22,11 @@ struct PolarFunction
 	int function_type;
 	float amplitude;
 	float frequency;
-	float power;
 	float time_shift;
 	float vertical_shift;
 	float left_bound;
 	float right_bound;
+	int layer;
 	};
 
 class PolarPrinter
@@ -36,12 +36,16 @@ public:
 	void calibrate();
 	void resetPolarFunction();
 	void setFunctionTerm(PolarFunction term, int f);
-	void print(PolarFunction *t, int size, int layers);
+	void print(PolarFunction *t, int size);
+	void toggleE();
+	void toggleZ();
 private:
 	void setNextGoal(int goal[3]);
 	void executeGoal();
 	void jogToStart(float t0, float r0);
 	void flip180();
+	void nextLayer();
+	void retract(int p);
 
 	//Arrays for setting / managing goal
 	//0 -> r
@@ -63,6 +67,11 @@ private:
 	bool z_dir = LOW;
 	bool e_dir = LOW;
 
+	bool r_ena = LOW;
+	bool t_ena = LOW;
+	bool z_ena = LOW;
+	bool e_ena = LOW;
+
 	//Polar Function
 	//[0][0] -> function 0 term 0
 	//[0][1] -> function 0 term 1
@@ -74,8 +83,10 @@ private:
 	bool R_SIGN_ = HIGH; 
 	float Theta_ = 0;
 	int Theta_Step_Count_ = 0;
+	int Z_;
 	//Printer Properties
 	float pulley_radius_ = 8;
+	int retract_frequency_ = 80;
 };
 
 #endif

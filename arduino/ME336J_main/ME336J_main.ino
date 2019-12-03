@@ -3,7 +3,7 @@
 #include <SerialME366J.h>
 
 PolarPrinter printer;
-PolarFunction polar_function[10];
+PolarFunction polar_function[30];
 StepperSerialCom com;
 int function_index = 0;
 
@@ -37,7 +37,16 @@ void loop()
         break;
       case(3):
         //Start Print
-        printer.print(polar_function, function_index, cmd.cmd_data);
+        printer.print(polar_function, function_index);
+        Serial.println("<Done>");
+        break;
+      case(4):
+        //flip e enable pin
+        printer.toggleE();
+        break;
+      case(5):
+        //flip z enable pin
+        printer.toggleZ();
         break;
     }
   }
@@ -61,19 +70,21 @@ void downloadPolarFunction()
         t.function_type = s.function_data[0];
         t.amplitude = s.function_data[1];
         t.frequency = s.function_data[2];
-        t.power = s.function_data[3];
-        t.time_shift = s.function_data[4];
-        t.vertical_shift = s.function_data[5];
-        t.left_bound = s.function_data[6];
-        t.right_bound = s.function_data[7];
+        t.time_shift = s.function_data[3];
+        t.vertical_shift = s.function_data[4];
+        t.left_bound = s.function_data[5];
+        t.right_bound = s.function_data[6];
+        t.layer = s.function_data[7];
         Serial.println(t.amplitude);
         Serial.println(t.frequency);
-        Serial.println(t.power);
         Serial.println(t.time_shift);
         Serial.println(t.vertical_shift);
         Serial.println(t.left_bound);
         Serial.println(t.right_bound);
-        //<1:1><2:0:100:1:1:0:0:0:6.29><3>
+        Serial.println(t.layer);
+        //<1><2:1:10:1:0:0:0:1:0><3>
+        //<1><2:3:50:1:0:0:0:6.28:0><1><2:3:50:1:0:0:0:6.28:1><3>
+        //<1><2:3:50:2:0:0:0:6.28:0><1><2:3:50:2:0:0:0:6.28:1><1><2:3:50:2:0:0:0:6.28:2><3>
         //<1:1><2:3:100:2:1:0:0:0:6.29><1:1><2:0:125:1:1:0:0:0:6.29><3:3>
         //<1:1><2:3:80:5:1:0:0:0:6.29><1:1><2:5:140:2:1:0:0:0:6.29><3:2>
 
